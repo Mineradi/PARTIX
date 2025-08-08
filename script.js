@@ -125,3 +125,4 @@ function showPage(id){
   });
   document.getElementById(id).classList.remove("hidden");
 }
+document.getElementById("regForm").addEventListener("submit", registerEmployee);
