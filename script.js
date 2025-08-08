@@ -1,5 +1,5 @@
 // ---------- CONFIG ----------
-const API_URL = "https://script.google.com/macros/s/AKfycbwM4IXqq9j9ET7yp8C4eX0H3-CVbDYt0Q1DutsfLBxqZOjKc9FenT_XiomG1ZVuFb9g/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbyFfYSIYJYOrWoHLsMhT2wnKjqX9tBzfJvb2012yhrZsQSiJJRF4YsVSaUs2TSuhk9S/exec"; 
 const ADMIN_ID = "PTX-0000";
 const ADMIN_PASS = "AdigoPTX701843405914";
 
