@@ -95,15 +95,72 @@ openRegister.onclick=()=>showPage("registerPage");
 logoutAdmin.onclick=()=>{sessionStorage.clear();showPage("loginPage");};
 
 // ---------- REGISTER ----------
-regForm.addEventListener("submit",async e=>{
-  e.preventDefault();
-  const name=fullName.value.trim();
-  const pass=password.value.trim();
-  const earn=parseFloat(earning.value)||0;
-  const newId=await apiRegisterEmployee({name,password:pass,earning:earn});
-  regMsg.innerHTML=`✅ Registered! ID: <b>${newId}</b>`;
+/**
+ * apiRegisterEmployee -> sends POST to Apps Script and returns parsed response.
+ * Expected server response: JSON string like {"status":"success","id":"PTX-..."}
+ */
+async function apiRegisterEmployee({name, password, earning}) {
+  try {
+    const r = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, password, earning })
+    });
+    const text = await r.text();
+    try {
+      return JSON.parse(text); // { status: 'success', id: 'PTX-...' }
+    } catch (err) {
+      // server returned non-JSON text
+      return { status: 'error', raw: text };
+    }
+  } catch (err) {
+    console.error('apiRegisterEmployee fetch error:', err);
+    return { status: 'error', message: err.message || 'network error' };
+  }
+}
+
+/**
+ * Wait until DOM loaded, then attach the form submit listener.
+ * This prevents "element is null" if the JS runs before HTML is ready.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('regForm');
+  const regMsg = document.getElementById('regMsg');
+  if (!form) {
+    console.error('regForm element not found in DOM');
+    return;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    regMsg.textContent = 'Registering...';
+
+    const name = (document.getElementById('fullName') || {}).value?.trim() || '';
+    const password = (document.getElementById('password') || {}).value?.trim() || '';
+    const earning = parseFloat((document.getElementById('earning') || {}).value) || 0;
+
+    if (!name || !password) {
+      regMsg.textContent = 'Please enter name and password.';
+      return;
+    }
+
+    // call API
+    const resp = await apiRegisterEmployee({ name, password, earning });
+    console.log('register response:', resp);
+
+    if (resp && resp.status === 'success' && resp.id) {
+      regMsg.innerHTML = `✅ Registered successfully. Employee ID: <b>${resp.id}</b>`;
+      // copy to clipboard if supported (optional)
+      if (navigator.clipboard) navigator.clipboard.writeText(resp.id).catch(()=>{});
+      // optionally clear inputs:
+      // form.reset();
+    } else {
+      // show helpful error
+      const errText = resp && (resp.raw || resp.message) ? (resp.raw || resp.message) : 'Unknown error';
+      regMsg.textContent = 'Registration failed: ' + errText;
+    }
+  });
 });
-backToAdmin.onclick=()=>{showPage("adminPage");loadEmployees();};
 
 // ---------- DASHBOARD ----------
 async function loadDashboard(){
